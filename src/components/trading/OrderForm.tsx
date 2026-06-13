@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { api } from "@/lib/api";
 
-export default function OrderForm() {
+export default function OrderForm({ pair }: { pair: string }) {
   const [side, setSide] = useState<"buy" | "sell">("buy");
   const [type, setType] = useState("limit");
   const [price, setPrice] = useState("");
@@ -12,110 +12,117 @@ export default function OrderForm() {
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState("");
 
-  const priceFromTotal = (total: string, qty: string) => {
-    if (Number(qty) > 0) return (Number(total) / Number(qty)).toFixed(2);
-    return "";
-  };
-
   const handleSubmit = async () => {
     setLoading(true); setMsg("");
     try {
-      const body: Record<string, unknown> = { pair: "BTC-USD", side, type };
+      const body: Record<string, unknown> = { pair, side, type };
       if (type === "limit" || type === "stop_loss_limit") body.price = Number(price);
       if (type.startsWith("stop_loss")) body.stopPrice = Number(stopPrice);
       body.quantity = Number(quantity);
       const res = await api.createOrder(body);
-      setMsg(`${res.status === "filled" ? "Filled" : "Order placed"} — ${res.id.slice(0, 8)}...`);
+      setMsg(`✓ ${res.status === "filled" ? "Filled" : "Open"} — ${res.id.slice(0, 8)}...`);
     } catch (e: any) {
-      setMsg(e?.message || "Order failed");
+      setMsg(`✗ ${e?.message || "Failed"}`);
     }
     setLoading(false);
   };
 
   return (
-    <div style={{ padding: 16 }}>
-      <div style={{ display: "flex", gap: 4, marginBottom: 16 }}>
-        <button onClick={() => setSide("buy")} className="btn-buy"
-          style={{ flex: 1, opacity: side === "buy" ? 1 : 0.5, borderRadius: "4px 0 0 4px" }}>
+    <div style={{ padding: 12, background: "#131722" }}>
+      {/* Buy/Sell toggle */}
+      <div style={{ display: "flex", gap: 0, marginBottom: 10 }}>
+        <button onClick={() => setSide("buy")}
+          style={{
+            flex: 1, padding: "6px 0", fontSize: 12, fontWeight: 600,
+            background: side === "buy" ? "#089981" : "transparent",
+            color: side === "buy" ? "#fff" : "#787b86",
+            borderRadius: "3px 0 0 3px",
+            border: "1px solid",
+            borderColor: side === "buy" ? "#089981" : "#2a2e39",
+          }}>
           Buy
         </button>
-        <button onClick={() => setSide("sell")} className="btn-sell"
-          style={{ flex: 1, opacity: side === "sell" ? 1 : 0.5, borderRadius: "0 4px 4px 0" }}>
+        <button onClick={() => setSide("sell")}
+          style={{
+            flex: 1, padding: "6px 0", fontSize: 12, fontWeight: 600,
+            background: side === "sell" ? "#f23645" : "transparent",
+            color: side === "sell" ? "#fff" : "#787b86",
+            borderRadius: "0 3px 3px 0",
+            border: "1px solid",
+            borderColor: side === "sell" ? "#f23645" : "#2a2e39",
+          }}>
           Sell
         </button>
       </div>
 
-      <div style={{ display: "flex", gap: 4, marginBottom: 12 }}>
-        {["limit", "market", "stop_loss_limit", "stop_loss_market"].map(t => (
+      {/* Order type */}
+      <div style={{ display: "flex", gap: 2, marginBottom: 8 }}>
+        {["limit", "market"].map(t => (
           <button key={t} onClick={() => setType(t)}
             style={{
-              flex: 1, padding: "6px 4px", fontSize: 11, fontWeight: 500,
-              background: type === t ? "var(--bg-card)" : "transparent",
-              color: type === t ? "var(--text-primary)" : "var(--text-muted)",
-              borderRadius: 4,
+              flex: 1, padding: "3px 0", fontSize: 10, fontWeight: 500,
+              background: type === t ? "#2a2e39" : "transparent",
+              color: type === t ? "#d1d4dc" : "#787b86",
+              borderRadius: 2, textTransform: "capitalize",
             }}>
-            {t === "stop_loss_limit" ? "SLL" : t === "stop_loss_market" ? "SLM" :
-             t.charAt(0).toUpperCase() + t.slice(1)}
+            {t}
           </button>
         ))}
       </div>
 
       {type !== "market" && (
-        <div style={{ marginBottom: 10 }}>
-          <label style={{ fontSize: 12, color: "var(--text-muted)", display: "block", marginBottom: 4 }}>
+        <div style={{ marginBottom: 6 }}>
+          <label style={{ fontSize: 10, color: "#787b86", display: "block", marginBottom: 2 }}>
             Price (USD)
           </label>
           <input type="number" value={price} onChange={e => setPrice(e.target.value)}
-            placeholder="0.00" style={{ width: "100%" }} />
+            placeholder="0.00" style={{ width: "100%", padding: "5px 8px", fontSize: 12 }} />
         </div>
       )}
 
-      {type.startsWith("stop_loss") && (
-        <div style={{ marginBottom: 10 }}>
-          <label style={{ fontSize: 12, color: "var(--text-muted)", display: "block", marginBottom: 4 }}>
-            Stop Price (USD)
-          </label>
-          <input type="number" value={stopPrice} onChange={e => setStopPrice(e.target.value)}
-            placeholder="0.00" style={{ width: "100%" }} />
-        </div>
-      )}
-
-      <div style={{ marginBottom: 10 }}>
-        <label style={{ fontSize: 12, color: "var(--text-muted)", display: "block", marginBottom: 4 }}>
+      <div style={{ marginBottom: 6 }}>
+        <label style={{ fontSize: 10, color: "#787b86", display: "block", marginBottom: 2 }}>
           Quantity (BTC)
         </label>
-        <input type="number" value={quantity} onChange={e => setQuantity(e.target.value)}
-          placeholder="0.00" style={{ width: "100%" }} />
+        <input type="number" value={quantity} onChange={e => {
+          setQuantity(e.target.value);
+          if (type === "limit" && price && e.target.value)
+            setTotal((Number(price) * Number(e.target.value)).toFixed(2));
+        }} placeholder="0.00" style={{ width: "100%", padding: "5px 8px", fontSize: 12 }} />
       </div>
 
       {type === "limit" && (
-        <div style={{ marginBottom: 10 }}>
-          <label style={{ fontSize: 12, color: "var(--text-muted)", display: "block", marginBottom: 4 }}>
+        <div style={{ marginBottom: 8 }}>
+          <label style={{ fontSize: 10, color: "#787b86", display: "block", marginBottom: 2 }}>
             Total (USD)
           </label>
           <input type="number" value={total} onChange={e => {
             setTotal(e.target.value);
-            setPrice(priceFromTotal(e.target.value, quantity));
-          }} placeholder="0.00" style={{ width: "100%" }} />
+            if (Number(e.target.value) > 0 && Number(quantity) > 0)
+              setPrice((Number(e.target.value) / Number(quantity)).toFixed(2));
+          }} placeholder="0.00" style={{ width: "100%", padding: "5px 8px", fontSize: 12 }} />
         </div>
       )}
 
-      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "var(--text-muted)", marginBottom: 16 }}>
-        <span>Available: <span style={{ color: "var(--text-primary)" }}>0.00 BTC</span></span>
-        <span>Total: <span style={{ color: "var(--text-primary)" }}>$0.00</span></span>
-      </div>
-
       <button onClick={handleSubmit} disabled={loading}
-        className={side === "buy" ? "btn-buy" : "btn-sell"}
-        style={{ width: "100%", padding: 12, fontSize: 15 }}>
-        {loading ? "Processing..." : `${side === "buy" ? "Buy" : "Sell"} BTC`}
+        style={{
+          width: "100%", padding: "8px 0", fontSize: 13, fontWeight: 600,
+          background: side === "buy" ? "#089981" : "#f23645",
+          color: "#fff", borderRadius: 3, marginBottom: 4,
+        }}>
+        {loading ? "..." : `${side === "buy" ? "Buy" : "Sell"} ${pair.split("-")[0]}`}
       </button>
 
       {msg && (
-        <div style={{ marginTop: 8, fontSize: 12, color: msg.includes("failed") ? "var(--red)" : "var(--green)", textAlign: "center" }}>
+        <div style={{ fontSize: 10, color: msg.includes("✓") ? "#089981" : "#f23645", textAlign: "center" }}>
           {msg}
         </div>
       )}
+
+      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "#787b86", marginTop: 6 }}>
+        <span>Bal: 0.00</span>
+        <span>Eq: $0.00</span>
+      </div>
     </div>
   );
 }
