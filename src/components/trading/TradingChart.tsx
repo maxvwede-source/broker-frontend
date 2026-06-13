@@ -29,20 +29,26 @@ export default function TradingChart() {
     ctx.fillStyle = "#0b0e11";
     ctx.fillRect(0, 0, W, H);
 
-    const data = candles.slice(-80);
-    const high = Math.max(...data.map(c => Number(c.high)), 1);
-    const low = Math.min(...data.map(c => Number(c.low)));
+    // Convert candle prices from cents to USD
+    const data = candles.slice(-80).map(c => ({
+      open: Number(c.open) / 100,
+      high: Number(c.high) / 100,
+      low: Number(c.low) / 100,
+      close: Number(c.close) / 100,
+    }));
+    const high = Math.max(...data.map(c => c.high), 1);
+    const low = Math.min(...data.map(c => c.low));
     const range = high - low || 1;
     const pad = 8;
     const candleW = Math.max(2, (W - pad * 2) / data.length - 1);
 
     data.forEach((c, i) => {
       const x = pad + i * (candleW + 1);
-      const openY = H - ((Number(c.open) - low) / range) * (H - 40) - 20;
-      const closeY = H - ((Number(c.close) - low) / range) * (H - 40) - 20;
-      const highY = H - ((Number(c.high) - low) / range) * (H - 40) - 20;
-      const lowY = H - ((Number(c.low) - low) / range) * (H - 40) - 20;
-      const isGreen = Number(c.close) >= Number(c.open);
+      const openY = H - ((c.open - low) / range) * (H - 40) - 20;
+      const closeY = H - ((c.close - low) / range) * (H - 40) - 20;
+      const highY = H - ((c.high - low) / range) * (H - 40) - 20;
+      const lowY = H - ((c.low - low) / range) * (H - 40) - 20;
+      const isGreen = c.close >= c.open;
 
       ctx.strokeStyle = isGreen ? "#0ecb81" : "#f6465d";
       ctx.lineWidth = 1;
