@@ -8,7 +8,7 @@ export default function TradingChart() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [candles, setCandles] = useState<Candle[]>([]);
   const [price, setPrice] = useState(0);
-  const [interval_, setInterval_] = useState("1m");
+  const [interval_, setInterval_] = useState("1d");
   const prevPrice = useRef(price);
 
   useEffect(() => {
