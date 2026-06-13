@@ -8,7 +8,7 @@ export default function TradingChart() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [candles, setCandles] = useState<Candle[]>([]);
   const [price, setPrice] = useState(0);
-  const [interval_, setInterval_] = useState("1d");
+  const [interval_, setInterval_] = useState("15m");
   const prevPrice = useRef(price);
 
   useEffect(() => {
@@ -61,7 +61,7 @@ export default function TradingChart() {
     const pad = { left: 50, right: 60, top: 16, bottom: 20 };
     const chartW = W - pad.left - pad.right;
     const chartH = H - pad.top - pad.bottom;
-    const candleW = Math.max(2, chartW / data.length - 1);
+    const candleW = Math.min(Math.max(2, chartW / data.length - 1), 24);
 
     // Price axis
     ctx.fillStyle = "#787b86";

@@ -48,6 +48,9 @@ export default function TradePage() {
     api.adminTrades().then(d => setTrades((d || []).slice(-30).reverse() || [])).catch(() => {});
   }, [user]);
 
+  const btcTicker = tickers.find(t => t.pair === PAIR);
+  const btcVol = btcTicker?.volume24h;
+
   const bestBid = book?.bids?.[0]?.price || "0";
   const bestAsk = book?.asks?.[0]?.price || "0";
 
@@ -100,7 +103,7 @@ export default function TradePage() {
             <span className="mono" style={{ fontSize: 18, fontWeight: 600, color: btcPrice >= 64482 ? "var(--green)" : "var(--red)" }}>
               ${btcPrice ? btcPrice.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) : "—"}
             </span>
-            <span className="mono" style={{ fontSize: 11, color: "#787b86" }}>24h Vol: —</span>
+            <span className="mono" style={{ fontSize: 11, color: "#787b86" }}>24h Vol: {btcVol ? `${(Number(btcVol) / 1e8).toFixed(3)}` : "—"}</span>
             <div style={{ flex: 1 }} />
             <span style={{ fontSize: 11, color: "#787b86" }}>
               Bid: <span className="mono" style={{ color: "var(--green)" }}>${(Number(bestBid) / 100).toFixed(2)}</span>
