@@ -23,7 +23,7 @@ const config: Config = {
         },
       },
       fontFamily: {
-        mono: ['"JetBrains Mono"', '"SF Mono"', '"Fira Code"', "Consolas", "monospace"],
+        mono: ['var(--font-mono)'],
         sans: [
           "-apple-system",
           "BlinkMacSystemFont",

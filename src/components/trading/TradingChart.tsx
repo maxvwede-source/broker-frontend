@@ -113,7 +113,7 @@ export default function TradingChart() {
 
     if (candles.length === 0) {
       ctx.fillStyle = "#787b86";
-      ctx.font = "12px -apple-system, sans-serif";
+      ctx.font = "12px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif";
       ctx.textAlign = "center";
       ctx.fillText("No data", dw / 2, dh / 2);
       return;
@@ -142,7 +142,7 @@ export default function TradingChart() {
 
     // Price axis
     ctx.fillStyle = "#787b86";
-    ctx.font = "10px monospace";
+    ctx.font = "10px \"JetBrains Mono\", monospace";
     ctx.textAlign = "right";
     const steps = 5;
     for (let i = 0; i <= steps; i++) {
@@ -187,7 +187,7 @@ export default function TradingChart() {
 
     // Time axis labels
     ctx.fillStyle = "#787b86";
-    ctx.font = "10px -apple-system, sans-serif";
+    ctx.font = "10px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif";
     ctx.textAlign = "center";
     const labelStep = Math.max(1, Math.floor(data.length / 6));
     for (let i = 0; i < data.length; i += labelStep) {
@@ -213,7 +213,7 @@ export default function TradingChart() {
       ctx.setLineDash([]);
 
       ctx.fillStyle = "#d1d4dc";
-      ctx.font = "10px monospace";
+      ctx.font = "10px \"JetBrains Mono\", monospace";
       ctx.textAlign = "right";
       ctx.fillText(`$${currentPrice.toFixed(2)}`, dw - 4, priceY - 4);
     }
