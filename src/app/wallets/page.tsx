@@ -5,6 +5,23 @@ import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import type { Wallet, Deposit, Withdrawal } from "@/lib/types";
 
+function WalletsSkeleton() {
+  return (
+    <div className="p-6 max-w-[1000px] mx-auto">
+      <div className="skeleton h-6 w-24 mb-6" />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+        {[1, 2].map((i) => (
+          <div key={i} className="bg-broker-card rounded-lg border border-broker-border p-4 space-y-3">
+            <div className="skeleton h-3 w-20" />
+            <div className="skeleton h-7 w-40" />
+            <div className="skeleton h-3 w-full" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function WalletsPage() {
   const { user } = useAuth();
   const router = useRouter();
@@ -19,114 +36,74 @@ export default function WalletsPage() {
   useEffect(() => {
     if (!user) { router.push("/login"); return; }
     Promise.all([
-      api.wallets().then(d => setWallets(d.wallets || [])),
-      api.transactions().then(d => {
-        setDeposits(d.deposits || []);
-        setWithdrawals(d.withdrawals || []);
-      }),
+      api.wallets().then((d) => setWallets(d.wallets || [])),
+      api.transactions().then((d) => { setDeposits(d.deposits || []); setWithdrawals(d.withdrawals || []); }),
     ]).finally(() => setLoading(false));
   }, [user]);
 
-  const genAddress = async () => {
-    const res = await api.depositAddress();
-    setNewAddr(res.address);
-  };
-
+  const genAddress = async () => { const res = await api.depositAddress(); setNewAddr(res.address); };
   const withdraw = async () => {
     if (!wdAddr || !wdAmt) return;
-    try {
-      const res = await api.withdraw(wdAddr, Number(wdAmt));
-      alert(`Withdrawal requested — ${res.id.slice(0, 8)}...`);
-      setWdAddr(""); setWdAmt("");
-    } catch (e: any) {
-      alert(e.message || "Withdrawal failed");
-    }
+    try { const res = await api.withdraw(wdAddr, Number(wdAmt)); alert(`Withdrawal requested \u2014 ${res.id.slice(0, 8)}...`); setWdAddr(""); setWdAmt(""); }
+    catch (e: any) { alert(e.message || "Withdrawal failed"); }
   };
 
-  if (loading) return <div style={{ padding: 40, textAlign: "center", color: "var(--text-muted)" }}>Loading...</div>;
+  if (loading) return <WalletsSkeleton />;
 
   return (
-    <div style={{ padding: 24, maxWidth: 1000, margin: "0 auto" }}>
-      <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 24 }}>Wallets</h1>
-
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 32 }}>
-        {wallets.map(w => (
-          <div key={w.id} style={{
-            background: "var(--bg-secondary)", borderRadius: 8,
-            border: "1px solid var(--border)", padding: 16,
-          }}>
-            <div style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 4 }}>BTC Wallet</div>
-            <div style={{ fontSize: 24, fontWeight: 700 }}>{(Number(w.balance) / 1e8).toFixed(8)}</div>
-            <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 8, wordBreak: "break-all" }}>
-              {w.address}
-            </div>
+    <div className="p-6 max-w-[1000px] mx-auto overflow-auto">
+      <h1 className="text-xl font-bold mb-6 text-broker-text-primary">Wallets</h1>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+        {wallets.map((w) => (
+          <div key={w.id} className="bg-broker-card rounded-lg border border-broker-border p-4">
+            <div className="text-sm text-broker-text-muted mb-1">BTC Wallet</div>
+            <div className="text-2xl font-bold text-broker-text-primary font-mono">{(Number(w.balance) / 1e8).toFixed(8)}</div>
+            <div className="text-xs text-broker-text-muted mt-2 break-all font-mono">{w.address}</div>
           </div>
         ))}
       </div>
-
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, marginBottom: 32 }}>
-        <div style={{ background: "var(--bg-secondary)", borderRadius: 8, border: "1px solid var(--border)", padding: 16 }}>
-          <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>Deposit</h2>
-          <button onClick={genAddress} className="btn-primary" style={{ width: "100%", marginBottom: 8 }}>
-            Generate Deposit Address
-          </button>
-          {newAddr && (
-            <div style={{
-              background: "var(--bg-primary)", padding: 12, borderRadius: 4,
-              fontSize: 12, wordBreak: "break-all", marginTop: 8,
-            }}>
-              {newAddr}
-            </div>
-          )}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div className="bg-broker-card rounded-lg border border-broker-border p-4">
+          <h2 className="text-base font-semibold mb-3 text-broker-text-primary">Deposit</h2>
+          <button onClick={genAddress} className="btn-primary w-full mb-2">Generate Deposit Address</button>
+          {newAddr && <div className="bg-broker-bg p-3 rounded text-xs break-all mt-2 font-mono text-broker-text-primary">{newAddr}</div>}
         </div>
-
-        <div style={{ background: "var(--bg-secondary)", borderRadius: 8, border: "1px solid var(--border)", padding: 16 }}>
-          <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>Withdraw</h2>
-          <div style={{ marginBottom: 10 }}>
-            <input type="text" value={wdAddr} onChange={e => setWdAddr(e.target.value)}
-              placeholder="BTC Address" style={{ width: "100%" }} />
-          </div>
-          <div style={{ marginBottom: 10 }}>
-            <input type="number" value={wdAmt} onChange={e => setWdAmt(e.target.value)}
-              placeholder="Amount (BTC)" style={{ width: "100%" }} />
-          </div>
-          <button onClick={withdraw} className="btn-sell" style={{ width: "100%" }}>
-            Withdraw
-          </button>
+        <div className="bg-broker-card rounded-lg border border-broker-border p-4">
+          <h2 className="text-base font-semibold mb-3 text-broker-text-primary">Withdraw</h2>
+          <div className="mb-2.5"><input type="text" value={wdAddr} onChange={(e) => setWdAddr(e.target.value)} placeholder="BTC Address" className="w-full" aria-label="BTC withdrawal address" /></div>
+          <div className="mb-2.5"><input type="number" value={wdAmt} onChange={(e) => setWdAmt(e.target.value)} placeholder="Amount (BTC)" className="w-full" aria-label="Withdrawal amount in BTC" /></div>
+          <button onClick={withdraw} className="btn-sell w-full">Withdraw</button>
         </div>
       </div>
-
-      <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>Transaction History</h2>
-      <div style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 16 }}>
-        {deposits.length + withdrawals.length} transactions
-      </div>
-      <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+      <h2 className="text-base font-semibold mb-3 text-broker-text-primary">Transaction History</h2>
+      <div className="text-sm text-broker-text-muted mb-4">{deposits.length + withdrawals.length} transactions</div>
+      <table className="w-full border-collapse text-sm">
         <thead>
-          <tr style={{ borderBottom: "1px solid var(--border)", color: "var(--text-muted)" }}>
-            <th style={{ textAlign: "left", padding: "8px 12px" }}>Type</th>
-            <th style={{ textAlign: "left", padding: "8px 12px" }}>Amount</th>
-            <th style={{ textAlign: "left", padding: "8px 12px" }}>Address</th>
-            <th style={{ textAlign: "left", padding: "8px 12px" }}>Status</th>
-            <th style={{ textAlign: "left", padding: "8px 12px" }}>Date</th>
+          <tr className="border-b border-broker-border text-broker-text-muted">
+            <th className="text-left px-3 py-2 font-medium">Type</th>
+            <th className="text-left px-3 py-2 font-medium">Amount</th>
+            <th className="text-left px-3 py-2 font-medium">Address</th>
+            <th className="text-left px-3 py-2 font-medium">Status</th>
+            <th className="text-left px-3 py-2 font-medium">Date</th>
           </tr>
         </thead>
         <tbody>
-          {deposits.map(d => (
-            <tr key={d.txid} style={{ borderBottom: "1px solid var(--border)" }}>
-              <td style={{ padding: "10px 12px" }}><span style={{ color: "var(--green)" }}>Deposit</span></td>
-              <td style={{ padding: "10px 12px" }}>{(Number(d.amount) / 1e8).toFixed(8)} BTC</td>
-              <td style={{ padding: "10px 12px", fontSize: 11, wordBreak: "break-all" }}>{d.address}</td>
-              <td style={{ padding: "10px 12px" }}>{d.status}</td>
-              <td style={{ padding: "10px 12px", color: "var(--text-muted)" }}>{new Date(d.createdAt).toLocaleDateString()}</td>
+          {deposits.map((d) => (
+            <tr key={d.txid} className="border-b border-broker-border">
+              <td className="px-3 py-2.5"><span className="text-broker-green font-medium">Deposit</span></td>
+              <td className="px-3 py-2.5 font-mono">{(Number(d.amount) / 1e8).toFixed(8)} BTC</td>
+              <td className="px-3 py-2.5 text-xs break-all font-mono text-broker-text-secondary">{d.address}</td>
+              <td className="px-3 py-2.5">{d.status}</td>
+              <td className="px-3 py-2.5 text-broker-text-muted">{new Date(d.createdAt).toLocaleDateString()}</td>
             </tr>
           ))}
-          {withdrawals.map(w => (
-            <tr key={w.id} style={{ borderBottom: "1px solid var(--border)" }}>
-              <td style={{ padding: "10px 12px" }}><span style={{ color: "var(--red)" }}>Withdrawal</span></td>
-              <td style={{ padding: "10px 12px" }}>{(Number(w.amount) / 1e8).toFixed(8)} BTC</td>
-              <td style={{ padding: "10px 12px", fontSize: 11, wordBreak: "break-all" }}>{w.address}</td>
-              <td style={{ padding: "10px 12px" }}>{w.status}</td>
-              <td style={{ padding: "10px 12px", color: "var(--text-muted)" }}>{new Date(w.createdAt).toLocaleDateString()}</td>
+          {withdrawals.map((w) => (
+            <tr key={w.id} className="border-b border-broker-border">
+              <td className="px-3 py-2.5"><span className="text-broker-red font-medium">Withdrawal</span></td>
+              <td className="px-3 py-2.5 font-mono">{(Number(w.amount) / 1e8).toFixed(8)} BTC</td>
+              <td className="px-3 py-2.5 text-xs break-all font-mono text-broker-text-secondary">{w.address}</td>
+              <td className="px-3 py-2.5">{w.status}</td>
+              <td className="px-3 py-2.5 text-broker-text-muted">{new Date(w.createdAt).toLocaleDateString()}</td>
             </tr>
           ))}
         </tbody>

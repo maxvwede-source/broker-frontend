@@ -14,11 +14,12 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true); setError("");
+    setLoading(true);
+    setError("");
     try {
       const res = await api.register(email, password);
       login(res.user, res.accessToken, res.refreshToken);
-      router.push("/");
+      router.push("/trade");
     } catch (err: any) {
       setError(err.message || "Registration failed");
     }
@@ -26,42 +27,25 @@ export default function RegisterPage() {
   };
 
   return (
-    <div style={{
-      display: "flex", justifyContent: "center", alignItems: "center",
-      height: "100vh", background: "var(--bg-primary)",
-    }}>
-      <div style={{
-        width: 400, padding: 32, background: "var(--bg-secondary)",
-        borderRadius: 8, border: "1px solid var(--border)",
-      }}>
-        <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 24, textAlign: "center" }}>
-          Create Account
-        </h1>
+    <div className="flex items-center justify-center h-screen bg-broker-bg">
+      <div className="w-[400px] p-8 bg-broker-card rounded-lg border border-broker-border">
+        <h1 className="text-2xl font-bold mb-6 text-center text-broker-text-primary">Create Account</h1>
         <form onSubmit={handleSubmit}>
-          <div style={{ marginBottom: 16 }}>
-            <label style={{ display: "block", fontSize: 13, color: "var(--text-secondary)", marginBottom: 6 }}>
-              Email
-            </label>
-            <input type="email" value={email} onChange={e => setEmail(e.target.value)}
-              required style={{ width: "100%" }} />
+          <div className="mb-4">
+            <label className="block text-sm text-broker-text-secondary mb-1.5">Email</label>
+            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required className="w-full" autoComplete="email" />
           </div>
-          <div style={{ marginBottom: 16 }}>
-            <label style={{ display: "block", fontSize: 13, color: "var(--text-secondary)", marginBottom: 6 }}>
-              Password
-            </label>
-            <input type="password" value={password} onChange={e => setPassword(e.target.value)}
-              required minLength={8} style={{ width: "100%" }} />
-            <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 4 }}>
-              Min 8 characters
-            </div>
+          <div className="mb-4">
+            <label className="block text-sm text-broker-text-secondary mb-1.5">Password</label>
+            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} className="w-full" autoComplete="new-password" />
+            <div className="text-xs text-broker-text-muted mt-1">Min 8 characters</div>
           </div>
-          {error && <div style={{ color: "var(--red)", fontSize: 13, marginBottom: 12 }}>{error}</div>}
-          <button type="submit" disabled={loading} className="btn-primary"
-            style={{ width: "100%", padding: 12, fontSize: 15 }}>
+          {error && <div className="text-broker-red text-sm mb-3" role="alert">{error}</div>}
+          <button type="submit" disabled={loading} className="btn-primary w-full py-3 text-base">
             {loading ? "Creating..." : "Register"}
           </button>
         </form>
-        <div style={{ marginTop: 16, textAlign: "center", fontSize: 13, color: "var(--text-secondary)" }}>
+        <div className="mt-4 text-center text-sm text-broker-text-secondary">
           Already have an account? <a href="/login">Log in</a>
         </div>
       </div>

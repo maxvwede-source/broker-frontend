@@ -13,113 +13,155 @@ export default function OrderForm({ pair }: { pair: string }) {
   const [msg, setMsg] = useState("");
 
   const handleSubmit = async () => {
-    setLoading(true); setMsg("");
+    setLoading(true);
+    setMsg("");
     try {
       const body: Record<string, unknown> = { pair, side, type };
-      if (type === "limit" || type === "stop_loss_limit") body.price = Number(price);
+      if (type === "limit" || type === "stop_loss_limit")
+        body.price = Number(price);
       if (type.startsWith("stop_loss")) body.stopPrice = Number(stopPrice);
       body.quantity = Number(quantity);
       const res = await api.createOrder(body);
-      setMsg(`✓ ${res.status === "filled" ? "Filled" : "Open"} — ${res.id.slice(0, 8)}...`);
+      setMsg(
+        `\u2713 ${res.status === "filled" ? "Filled" : "Open"} \u2014 ${res.id.slice(0, 8)}...`,
+      );
     } catch (e: any) {
-      setMsg(`✗ ${e?.message || "Failed"}`);
+      setMsg(`\u2717 ${e?.message || "Failed"}`);
     }
     setLoading(false);
   };
 
+  const isBuy = side === "buy";
+
   return (
-    <div style={{ padding: 12, background: "#131722" }}>
+    <div className="p-3 bg-broker-bg">
       {/* Buy/Sell toggle */}
-      <div style={{ display: "flex", gap: 0, marginBottom: 10 }}>
-        <button onClick={() => setSide("buy")}
-          style={{
-            flex: 1, padding: "6px 0", fontSize: 12, fontWeight: 600,
-            background: side === "buy" ? "#089981" : "transparent",
-            color: side === "buy" ? "#fff" : "#787b86",
-            borderRadius: "3px 0 0 3px",
-            border: "1px solid",
-            borderColor: side === "buy" ? "#089981" : "#2a2e39",
-          }}>
+      <div className="flex gap-0 mb-2.5">
+        <button
+          onClick={() => setSide("buy")}
+          className={`flex-1 py-1.5 text-xs font-semibold rounded-l border ${
+            isBuy
+              ? "bg-broker-green text-white border-broker-green"
+              : "bg-transparent text-broker-text-secondary border-broker-border"
+          }`}
+          aria-pressed={isBuy}
+        >
           Buy
         </button>
-        <button onClick={() => setSide("sell")}
-          style={{
-            flex: 1, padding: "6px 0", fontSize: 12, fontWeight: 600,
-            background: side === "sell" ? "#f23645" : "transparent",
-            color: side === "sell" ? "#fff" : "#787b86",
-            borderRadius: "0 3px 3px 0",
-            border: "1px solid",
-            borderColor: side === "sell" ? "#f23645" : "#2a2e39",
-          }}>
+        <button
+          onClick={() => setSide("sell")}
+          className={`flex-1 py-1.5 text-xs font-semibold rounded-r border ${
+            !isBuy
+              ? "bg-broker-red text-white border-broker-red"
+              : "bg-transparent text-broker-text-secondary border-broker-border"
+          }`}
+          aria-pressed={!isBuy}
+        >
           Sell
         </button>
       </div>
 
       {/* Order type */}
-      <div style={{ display: "flex", gap: 2, marginBottom: 8 }}>
-        {["limit", "market"].map(t => (
-          <button key={t} onClick={() => setType(t)}
-            style={{
-              flex: 1, padding: "3px 0", fontSize: 10, fontWeight: 500,
-              background: type === t ? "#2a2e39" : "transparent",
-              color: type === t ? "#d1d4dc" : "#787b86",
-              borderRadius: 2, textTransform: "capitalize",
-            }}>
+      <div className="flex gap-0.5 mb-2">
+        {["limit", "market"].map((t) => (
+          <button
+            key={t}
+            onClick={() => setType(t)}
+            className={`flex-1 py-0.5 text-2xs font-medium rounded text-center capitalize ${
+              type === t
+                ? "bg-broker-surface text-broker-text-primary"
+                : "bg-transparent text-broker-text-secondary"
+            }`}
+            aria-pressed={type === t}
+          >
             {t}
           </button>
         ))}
       </div>
 
       {type !== "market" && (
-        <div style={{ marginBottom: 6 }}>
-          <label style={{ fontSize: 10, color: "#787b86", display: "block", marginBottom: 2 }}>
+        <div className="mb-1.5">
+          <label className="text-2xs text-broker-text-secondary block mb-0.5">
             Price (USD)
           </label>
-          <input type="number" value={price} onChange={e => setPrice(e.target.value)}
-            placeholder="0.00" style={{ width: "100%", padding: "5px 8px", fontSize: 12 }} />
+          <input
+            type="number"
+            value={price}
+            onChange={(e) => setPrice(e.target.value)}
+            placeholder="0.00"
+            className="w-full px-2 py-1 text-xs"
+            aria-label="Price in USD"
+          />
         </div>
       )}
 
-      <div style={{ marginBottom: 6 }}>
-        <label style={{ fontSize: 10, color: "#787b86", display: "block", marginBottom: 2 }}>
+      <div className="mb-1.5">
+        <label className="text-2xs text-broker-text-secondary block mb-0.5">
           Quantity (BTC)
         </label>
-        <input type="number" value={quantity} onChange={e => {
-          setQuantity(e.target.value);
-          if (type === "limit" && price && e.target.value)
-            setTotal((Number(price) * Number(e.target.value)).toFixed(2));
-        }} placeholder="0.00" style={{ width: "100%", padding: "5px 8px", fontSize: 12 }} />
+        <input
+          type="number"
+          value={quantity}
+          onChange={(e) => {
+            setQuantity(e.target.value);
+            if (type === "limit" && price && e.target.value)
+              setTotal((Number(price) * Number(e.target.value)).toFixed(2));
+          }}
+          placeholder="0.00"
+          className="w-full px-2 py-1 text-xs"
+          aria-label="Quantity in BTC"
+        />
       </div>
 
       {type === "limit" && (
-        <div style={{ marginBottom: 8 }}>
-          <label style={{ fontSize: 10, color: "#787b86", display: "block", marginBottom: 2 }}>
+        <div className="mb-2">
+          <label className="text-2xs text-broker-text-secondary block mb-0.5">
             Total (USD)
           </label>
-          <input type="number" value={total} onChange={e => {
-            setTotal(e.target.value);
-            if (Number(e.target.value) > 0 && Number(quantity) > 0)
-              setPrice((Number(e.target.value) / Number(quantity)).toFixed(2));
-          }} placeholder="0.00" style={{ width: "100%", padding: "5px 8px", fontSize: 12 }} />
+          <input
+            type="number"
+            value={total}
+            onChange={(e) => {
+              setTotal(e.target.value);
+              if (Number(e.target.value) > 0 && Number(quantity) > 0)
+                setPrice(
+                  (Number(e.target.value) / Number(quantity)).toFixed(2),
+                );
+            }}
+            placeholder="0.00"
+            className="w-full px-2 py-1 text-xs"
+            aria-label="Total in USD"
+          />
         </div>
       )}
 
-      <button onClick={handleSubmit} disabled={loading}
-        style={{
-          width: "100%", padding: "8px 0", fontSize: 13, fontWeight: 600,
-          background: side === "buy" ? "#089981" : "#f23645",
-          color: "#fff", borderRadius: 3, marginBottom: 4,
-        }}>
-        {loading ? "..." : `${side === "buy" ? "Buy" : "Sell"} ${pair.split("-")[0]}`}
+      <button
+        onClick={handleSubmit}
+        disabled={loading}
+        className={`w-full py-2 text-xs font-semibold text-white rounded mb-1 ${
+          isBuy ? "bg-broker-green hover:bg-[#07a08a]" : "bg-broker-red hover:bg-[#da2c3b]"
+        } disabled:opacity-35 disabled:cursor-not-allowed`}
+        aria-label={`${isBuy ? "Buy" : "Sell"} ${pair.split("-")[0]}`}
+      >
+        {loading
+          ? "..."
+          : `${isBuy ? "Buy" : "Sell"} ${pair.split("-")[0]}`}
       </button>
 
       {msg && (
-        <div style={{ fontSize: 10, color: msg.includes("✓") ? "#089981" : "#f23645", textAlign: "center" }}>
+        <div
+          className={`text-2xs text-center ${
+            msg.includes("\u2713")
+              ? "text-broker-green"
+              : "text-broker-red"
+          }`}
+          role="alert"
+        >
           {msg}
         </div>
       )}
 
-      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "#787b86", marginTop: 6 }}>
+      <div className="flex justify-between text-2xs text-broker-text-secondary mt-1.5">
         <span>Bal: 0.00</span>
         <span>Eq: $0.00</span>
       </div>
